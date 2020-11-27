@@ -11,7 +11,7 @@ func main() {
 	e := email.NewEmail()
 	e.From = "stevenlee87 <stevenlee87@126.com>"
 	e.To = []string{"stevenlee87@126.com"}
-	e.Cc = []string{"stevenlee87@126.com"}
+	e.Cc = []string{"172532519@qq.com"}
 	e.Subject = "Go 每日一库"
 	e.HTML = []byte(`
   <ul>
