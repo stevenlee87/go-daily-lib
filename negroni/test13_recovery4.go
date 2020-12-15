@@ -1,15 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/urfave/negroni"
 )
 
 /*
-除了在控制台和浏览器中输出panic信息，Recovery还提供了钩子函数，可以向其他服务上报panic，如Sentry/Airbrake。当然上报的代码要自己写
+设置PanicHandlerFunc之后，发生panic就会调用此函数。
+我们还可以对输出的格式进行设置，设置Formatter字段为negroni.HTMLPanicFormatter能让输出更好地在浏览器中呈现：
 */
+
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -18,13 +19,9 @@ func main() {
 
 	n := negroni.New()
 	r := negroni.NewRecovery()
-	r.PanicHandlerFunc = reportToSentry
+	r.Formatter = &negroni.HTMLPanicFormatter{}
 	n.Use(r)
 	n.UseHandler(mux)
 
 	http.ListenAndServe(":3000", n)
-}
-
-func reportToSentry(info *negroni.PanicInformation) {
-	fmt.Println("sent to sentry")
 }
