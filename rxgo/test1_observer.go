@@ -20,6 +20,16 @@ Rx 仅仅只是一个 API 规范的定义。Rx 有多种编程语言实现，RxJ
 pipelines (官方博客：https://blog.golang.org/pipelines)是 Go 基础的并发编程模型。其中包含，fan-in——多个 goroutine 产生数据，
 一个goroutine 处理数据，fan-out——一个 goroutine 产生数据，多个 goroutine 处理数据，fan-inout——多个 goroutine 产生数据，
 多个 goroutine 处理数据。它们都是通过 channel 连接。RxGo 的实现就是基于 pipelines 的理念，并且提供了方便易用的包装和强大的扩展。
+
+Just使用柯里化（currying）让它可以在第一个参数中接受多个数据，在第二个参数中接受多个选项定制行为。柯里化是函数化编程的思想，简单来说就是通过在函数中返回函数，以此来减少每个函数的参数个数。例如：
+
+func add(value int) func (int) int {
+  return func (a int) int {
+    return value + a
+  }
+}
+
+fmt.Prinlnt(add(5)(10)) // 15
 */
 
 func main() {
