@@ -22,16 +22,24 @@ func input(display *widget.Entry, value string) func() {
 func equals(display *widget.Entry) func() {
 	return func() {
 		lines := strings.Split(display.Text, "\n")
+		fmt.Printf("lines is %s\n", lines)
 		if len(lines) == 0 {
 			return
 		}
+		fmt.Printf("len(lines) is %d\n", len(lines))
 
 		line := lines[len(lines)-1]
+		fmt.Printf("line1 is %s\n", line)
+
 		line = strings.Trim(line, "+÷×")
+		fmt.Printf("line2 is %s\n", line)
+
 		exprLine := strings.Replace(line, "÷", "/", -1)
 		exprLine = strings.Replace(exprLine, "×", "*", -1)
 		expr, _ := govaluate.NewEvaluableExpression(exprLine)
 		result, _ := expr.Evaluate(nil)
+		fmt.Printf("result is %s\n", result)
+
 		line += "=\n"
 		line += fmt.Sprint(result)
 		display.Text = line
