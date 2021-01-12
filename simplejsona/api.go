@@ -1,6 +1,9 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/stevenlee87/go-daily-lib/simplejsona/middleware"
+)
 
 //type Status struct {
 //	ErrorNo int `json:"error_no"`
@@ -49,6 +52,7 @@ func main() {
 	cnnJson["data"] = navs
 
 	r := gin.Default()
+	r.Use(middleware.Cors())
 	r.GET("/category", func(c *gin.Context) {
 		c.JSON(200, cnnJson)
 	})
