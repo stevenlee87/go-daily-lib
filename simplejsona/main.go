@@ -23,6 +23,11 @@ type Course struct {
 	Name string `json:"name"`
 }
 
+type Question struct {
+	ID     int    `json:"id"`
+	Answer string `json:"answer"`
+}
+
 func nav() map[string]interface{} {
 	//navs := []Navigation{{ID: 1, Name: "Python", Category: 1}, {ID: 2, Name: "Linux基础", Category: 4},
 	//	{ID: 3, Name: "前端", Category: 2}, {ID: 4, Name: "Python进阶", Category: 1}, {ID: 6, Name: "UI", Category: 5},
@@ -192,6 +197,42 @@ func course7() map[string]interface{} {
 
 }
 
+func question1() map[string]interface{} {
+
+	var questions []Question
+	question1 := Question{
+		ID:     1,
+		Answer: "本课程通过讲解开发中最常用的11个模块和第三方开源模块，让我们避免重复造轮子的同时还能让代码性能更高并且易读。",
+	}
+
+	questions = append(questions, question1)
+
+	questionJson := make(map[string]interface{})
+	questionJson["error_no"] = 0
+	questionJson["data"] = questions
+	return questionJson
+
+}
+
+func question2() map[string]interface{} {
+
+	var questions []Question
+	question2 := Question{
+		ID: 2,
+		Answer: "Shell作为Linux系统默认的脚本管理语言，也是Linux使用者的必备技能。在本课程中，我将亲自带你学习如何使用Shell来更好的" +
+			"操作、管理手里的Linux服务器，如何通过Shell脚本让机器搞定搞定一切Linux系统管理工作。学好本课程，你就是Shell大神！" +
+			"让我们赶快开始吧！",
+	}
+
+	questions = append(questions, question2)
+
+	questionJson := make(map[string]interface{})
+	questionJson["error_no"] = 0
+	questionJson["data"] = questions
+	return questionJson
+
+}
+
 func getRouteParams(c *gin.Context) {
 	// 获取路由参数为name的值
 	// http://127.0.0.1:8888/route/card  输出 card
@@ -265,6 +306,7 @@ func main() {
 	//
 	//})
 
+	// http://127.0.0.1:8090/courses/?sub_category=1
 	r.GET("/courses/", func(c *gin.Context) {
 		sub_category := c.Query("sub_category")
 
@@ -279,6 +321,23 @@ func main() {
 				"course4": course4,
 				"course6": course6,
 				"course7": course7,
+			}
+		)
+		c1 := fm[func_name]
+		c.JSON(200, c1())
+
+	})
+
+	// http://127.0.0.1:8090/course_questions/?course_id=1
+	r.GET("/course_questions/", func(c *gin.Context) {
+		course_id := c.Query("course_id")
+
+		func_name := "question" + course_id
+		fmt.Printf("func_name is", func_name)
+		var (
+			fm = map[string]func() map[string]interface{}{
+				"question1": question1,
+				"question2": question2,
 			}
 		)
 		c1 := fm[func_name]
