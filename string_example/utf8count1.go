@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 func Utf8Count(s string) int {
 	var count int
 	for range s {
@@ -8,5 +10,6 @@ func Utf8Count(s string) int {
 	return count
 }
 
-fmt.Println(Utf8Count("中国")) // 2
-
+func main() {
+	fmt.Println(Utf8Count("中国")) // 2
+}
