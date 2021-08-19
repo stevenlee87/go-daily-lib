@@ -30,7 +30,7 @@ func main() {
 
 /*
 解析：
-在 golang 中  goroutine 的调度时间是不确定的，
-在题⽬中，第⼀个写 channel 的 goroutine 可能还未调⽤，或已调⽤但没有写完时直接 close 管道，
-可能导致写失败，即出现 panic 错误。
+在 golang 中 goroutine 的调度时间是不确定的，
+在题⽬中，第⼀个写channel 的 goroutine 可能还未调⽤，或已调⽤但没有写完时直接 close 管道，
+可能导致写失败，即出现 panic 错误。
 */
