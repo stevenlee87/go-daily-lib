@@ -32,5 +32,5 @@ func main() {
 虽然有使⽤sync.Mutex做写锁，但是map是并发读写不安全的。map属于引⽤类型，并
 发读写时多个协程⻅是通过指针访问同⼀个地址，即访问共享变量，此时同时读写资源
 存在竞争关系。会报错误信息:“fatal error: concurrent map read and map write”。
-因此，在  Get 中也需要加锁，因为这⾥只是读，建议使⽤读写锁  sync.RWMutex 。
+因此，在 Get 中也需要加锁，因为这⾥只是读，建议使⽤读写锁 sync.RWMutex 。
 */
