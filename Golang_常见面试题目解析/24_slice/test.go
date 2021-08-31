@@ -14,5 +14,6 @@ func Add(arr []int, index int, value int) []int {
 
 func main() {
 	arr := []int{1, 2, 3}
-	fmt.Println(Add(arr, 2, 5))
+	Add(arr, 2, 5)
+	fmt.Println(arr)
 }
