@@ -17,3 +17,20 @@ func main() {
 	say("hello")
 	//time.Sleep(time.Second * 1)
 }
+
+/* golang 1.16
+hello
+hello
+
+world
+hello
+world
+hello
+
+world
+world
+hello
+hello
+
+
+*/
