@@ -59,8 +59,7 @@ func main() {
 /*
 交替打印数字和字⺟
 问题描述
-使⽤两个  goroutine 交替打印序列，⼀个  goroutine 打印数字， 另外⼀
-个  goroutine 打印字⺟， 最终效果如下：
+使⽤两个 goroutine 交替打印序列，⼀个 goroutine 打印数字， 另外⼀个 goroutine 打印字⺟， 最终效果如下：
 解题思路
 问题很简单，使⽤ channel 来控制打印的进度。使⽤两个 channel ，来分别控制数字和
 字⺟的打印序列， 数字打印完成后通过 channel 通知字⺟打印, 字⺟打印完成后通知数
