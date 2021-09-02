@@ -11,7 +11,7 @@ func isUniqueString(s string) bool {
 	}
 
 	for _, v := range s {
-		fmt.Println(v)
+		//fmt.Println(v)
 		if v > 127 {
 			return false
 		}
@@ -31,7 +31,7 @@ func isUniqueString2(s string) bool {
 		if v > 127 {
 			return false
 		}
-		fmt.Println(strings.Index(s, string(v)))
+		//fmt.Println(strings.Index(s, string(v)))
 		if strings.Index(s, string(v)) != k { // Index returns the index of the first instance of substr in s, or -1 if substr is not present in s.
 			return false
 		}
