@@ -19,7 +19,7 @@ func main() {
 	c := time.Tick(1 * time.Second)
 	for range c {
 		// 使用 runtime.NumGoroutine 检查进程创建的 goroutine 数量总数
-		fmt.Printf("#goroutines: %d\n", runtime.NumGoroutine())
+		fmt.Printf("#goroutines: %d\n", runtime.NumGoroutine()) // main 是主协程
 	}
 }
 
