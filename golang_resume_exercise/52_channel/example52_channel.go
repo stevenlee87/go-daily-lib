@@ -39,3 +39,11 @@ func main() {
 	stru2, ok2 := <-cs
 	fmt.Printf("再再读chan的协程结束，stru=%v， ok=%v\n", stru2, ok2)
 }
+
+/*
+读已经关闭的 chan 能⼀直读到东⻄，但是读到的内容根据通道内关闭前是否有元素⽽不同。
+如果 chan 关闭前，buffer 内有元素还未读 , 会正确读到 chan 内的值，且返回的第⼆ 个 bool 值（是否读成功）为 true。
+如果 chan 关闭前，buffer 内有元素已经被读完，chan 内⽆值，接下来所有接收的值都会⾮阻塞直接成功，返回 channel 元素的零值，但是第⼆个 bool 值⼀直为 false。
+
+写已经关闭的 chan 会 panic
+*/
