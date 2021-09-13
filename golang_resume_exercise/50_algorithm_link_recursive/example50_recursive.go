@@ -12,6 +12,7 @@ type Node struct {
 func (n *Node) add(node *Node) {
 	node.Next = n.Next
 	n.Next = node
+	//fmt.Printf("node: %v, n.Next: %v\n", node, n.Next)
 }
 
 func (n *Node) String() string {
@@ -30,6 +31,7 @@ func NewNode(value int) *Node {
 
 // node, _ = reverse(node, 1, 3)
 func reverse(node *Node, deep, k int) (*Node, *Node) {
+	//fmt.Println(node) node := node.Next
 	if node == nil {
 		return nil, nil
 	}
