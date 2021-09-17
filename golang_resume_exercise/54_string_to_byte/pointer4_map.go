@@ -11,6 +11,8 @@ func main() {
 	mp["shifu"] = 18
 	//mp["jack"] = 60
 
+	// type ArbitraryType int
+	// type Pointer *ArbitraryType
 	count := **(**int)(unsafe.Pointer(&mp))
 	fmt.Println(count, len(mp)) // 2 2
 }
