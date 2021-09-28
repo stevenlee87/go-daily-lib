@@ -6,7 +6,7 @@ func main() {
 	orderLen := 5
 	order := make([]uint16, 2*orderLen)
 
-	pollorder := order[:orderLen:orderLen] // order[:5:5]
+	pollorder := order[:orderLen:5] // order[:5:5]
 	lockorder := order[orderLen:][:orderLen:orderLen]
 
 	fmt.Println("len(pollorder) = ", len(pollorder))
