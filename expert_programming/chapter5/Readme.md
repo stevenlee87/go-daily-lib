@@ -15,3 +15,8 @@ Context: 使用上下文控制子协程
 三种方案各有优劣，比如Channel优点是实现简单，清晰易懂，WaitGroup优点是子协程个数动态可调整，Context
 
 优点是对子协程派生出来的孙子协程的控制。缺点是相对而言的，要结合实例应用场景进行选择。 
+
+##Context
+Golang context是Golang应用开发常用的并发控制技术，它与WaitGroup最大的不同点是context对于派生 goroutine有更强的控制力，
+它可以控制多级的goroutine。 context翻译成中文是”上下文”，即它可以控制一组呈树状结构的goroutine，每个goroutine拥有相同的上下文。
+典型的使用场景如下图所示：
