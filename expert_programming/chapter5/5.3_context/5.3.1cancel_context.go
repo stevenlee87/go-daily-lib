@@ -58,3 +58,8 @@ func main() {
 	//Just for test whether sub goroutines exit or not
 	time.Sleep(5 * time.Second)
 }
+
+/*
+上面代码中协程HandelRequest()用于处理某个请求，其又会创建两个协程：WriteRedis()、 WriteDatabase()，main协程创建创建context，
+并把context在各子协程间传递，main协程在适当的时机可以 cancel掉所有子协程。
+*/
