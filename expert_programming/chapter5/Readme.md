@@ -20,3 +20,10 @@ Context: 使用上下文控制子协程
 Golang context是Golang应用开发常用的并发控制技术，它与WaitGroup最大的不同点是context对于派生 goroutine有更强的控制力，
 它可以控制多级的goroutine。 context翻译成中文是”上下文”，即它可以控制一组呈树状结构的goroutine，每个goroutine拥有相同的上下文。
 典型的使用场景如下图所示：
+
+## 总结
+- Context仅仅是一个接口定义，跟据实现的不同，可以衍生出不同的context类型；
+- cancelCtx实现了Context接口，通过WithCancel()创建cancelCtx实例；
+- timerCtx实现了Context接口，通过WithDeadline()和WithTimeout()创建timerCtx实例；
+- valueCtx实现了Context接口，通过WithValue()创建valueCtx实例；
+- 三种context实例可互为父节点，从而可以组合成不同的应用形式； 
