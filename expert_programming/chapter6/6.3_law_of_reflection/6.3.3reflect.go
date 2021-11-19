@@ -11,3 +11,5 @@ func main() {
 	v.Elem().SetFloat(7.1)
 	fmt.Println("x :", v.Elem().Interface())
 }
+
+// 该例演示了反射的第三个能力，即通过反射可以修改interface变量，但必须获得interface变量的地址
