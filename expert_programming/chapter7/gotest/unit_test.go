@@ -22,7 +22,7 @@ PASS
 ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/gotest  1.224s
 
 通过package语句可以看到，测试文件属于“gotest_test”包，测试文件也可以跟源文件在同一个包，但常见的做 法是创建一个包专用于测试，
-这样可以使测试文件和源文件隔离。GO源代码以及其他知名的开源框架通常会创建测试 包，而且规则是在原包名上加上”_test”。
+这样可以使测试文件和源文件隔离。GO源代码以及其他知名的开源框架通常会创建测试包，而且规则是在原包名上加上”_test”。
 
 测试函数命名规则为”TestXxx”，其中“Test”为单元测试的固定开头，go test只会执行以此为开头的方法。
 紧跟“Test”是以首字母大写的单词，用于识别待测试函数。
