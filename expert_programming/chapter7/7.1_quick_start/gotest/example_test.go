@@ -1,6 +1,6 @@
 package gotest_test
 
-import gotest "github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/example"
+import "github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest"
 
 // 检测单行输出
 func ExampleSayHello() {

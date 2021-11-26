@@ -3,7 +3,7 @@ package gotest_test
 import (
 	"testing"
 
-	gotest "github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/benchmark"
+	"github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest"
 )
 
 func BenchmarkMakeSliceWithoutAlloc(b *testing.B) {
