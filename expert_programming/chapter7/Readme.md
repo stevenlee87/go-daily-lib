@@ -111,3 +111,17 @@ go test subparallel_test.go -v -run SubParallel
 
 所谓Main测试，即声明一个 func TestMain(m *testing.M) ，它是名字比较特殊的测试，参数类型为 testing.M 指针。
 如果声明了这样一个函数，当前测试程序将不是直接执行各项测试，而是将测试交给TestMain调度。
+
+## 7.3 实现原理
+
+### 7.3.1 testing.common
+
+我们知道单元测试函数需要传递一个 testing.T 类型的参数，而性能测试函数需要传递一个 testing.B 类型的参 数，该参数可用于控制测试的流程，
+比如标记测试失败等。 
+
+testing.T 和 testing.B 属于 testing 包中的两个数据类型，该类型提供一系列的方法用于控制函数执行流程， 考虑到二者有一定的相似性，
+所以Go实现时抽象出一个 testing.common 作为一个基础类型， 而 testing.T 和 testing.B 则属于 testing.common 的扩展。
+
+common.helpers 已经被取消了：https://github.com/golang/go/commit/4c174a7ba66724f8f9a1915c8f4868a8b3aaf219
+
+### 7.3.2 testing.TB接口
