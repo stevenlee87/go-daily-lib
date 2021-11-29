@@ -27,6 +27,6 @@ func main() {
 
 /*
 解析：
-输出结果为 showA 、 showB 。golang 语⾔中没有继承概念，只有组合，也没有虚⽅
-法，更没有重载。因此， *Teacher 的  ShowB 不会覆写被组合的  People 的⽅法。
+输出结果为 showA 、 showB 。golang 语⾔中没有继承概念，只有组合，也没有虚⽅法，更没有重载。
+因此， *Teacher 的 ShowB 不会覆写被组合的 People 的⽅法。
 */
