@@ -125,3 +125,87 @@ testing.T 和 testing.B 属于 testing 包中的两个数据类型，该类型�
 common.helpers 已经被取消了：https://github.com/golang/go/commit/4c174a7ba66724f8f9a1915c8f4868a8b3aaf219
 
 ### 7.3.2 testing.TB接口
+
+TB接口，顾名思义，是testing.T(单元测试)和testing.B(性能测试)共用的接口。 
+
+TB接口通过在接口中定义一个名为private(）的私有方法，保证了即使用户实现了类似的接口，也不会跟 testing.TB接口冲突。 
+
+其实，这些接口在testing.T和testing.B公共成员testing.common中已经实现。
+
+### 7.3.3 单元测试实现原理
+
+简介
+在了解过testing.common后，我们进一步了解testing.T数据结构，以便了解更多单元测试执行的更多细节。
+
+数据结构
+源码包src/testing/testing.go:T定义了其数据结构：
+
+```go
+type T struct {
+    common
+    isParallel bool
+    context    *testContext // For running tests and subtests.
+}
+```
+
+其成员简单介绍如下：  
+common： 即前面绍的testing.common  
+isParallel： 表示当前测试是否需要并发，如果测试中执行了t.Parallel()，则此值为true  
+context： 控制测试的并发调度  
+因为context直接决定了单元测试的调度，在介绍testing.T支持的方法前，有必要先了解一下context。  
+
+### 7.3.4 性能测试实现原理
+
+#### 简介
+
+跟据前面章节，我们可以快速的写出一个性能测试并执行，最令我感到神奇的是b.N的值，虽然官方资料中说b.N会自动调整以保证可靠的计时，
+可还是想了解具体的实现机制。 
+
+本节，我们先分析testing.B数据结构，再看几个典型的成员函数，以期从源码中寻找以下问题的答案： 
+- b.N是如何自动调整的？ 
+- 内存统计是如何实现的？ 
+- SetBytes()其使用场景是什么？
+
+#### 数据结构
+
+源码包src/testing/benchmark.go:B定义了性能测试的数据结构，我们提取其比较重要的一些成员进行分析：  
+
+```go
+type B struct {
+	common
+	importPath       string // import path of the package containing the benchmark
+	context          *benchContext
+	N                int
+	previousN        int           // number of iterations in the previous run
+	previousDuration time.Duration // total duration of the previous run
+	benchFunc        func(b *B)
+	benchTime        benchTimeFlag
+	bytes            int64
+	missingBytes     bool // one of the subbenchmarks does not have bytes set.
+	timerOn          bool
+	showAllocResult  bool
+	result           BenchmarkResult
+	parallelism      int // RunParallel creates parallelism*GOMAXPROCS goroutines
+	// The initial states of memStats.Mallocs and memStats.TotalAlloc.
+	startAllocs uint64
+	startBytes  uint64
+	// The net total of this test after being run.
+	netAllocs uint64
+	netBytes  uint64
+	// Extra metrics collected by ReportMetric.
+	extra map[string]float64
+}
+```
+
+其主要成员如下：  
+- common： 与testing.T共享的testing.common，管理着日志、状态等；
+- N：每个测试中用户代码执行次数
+- benchFunc：测试函数
+- benchTime：性能测试最少执行时间，默认为1s，可以通过能数-benchtime 2s指定
+- bytes：每次迭代处理的字节数
+- timerOn：计时启动标志，默认为false，启动计时为true
+- startAllocs：测试启动时记录堆中分配的对象数
+- startBytes：测试启动时记录堆中分配的字节数
+- netAllocs：测试结束后记录堆中新增加的对象数，公式：结束时堆中分配的对象数-
+- netBytes：测试对事后记录堆中新增加的字节数
+
