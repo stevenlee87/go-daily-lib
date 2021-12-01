@@ -209,3 +209,16 @@ type B struct {
 - netAllocs：测试结束后记录堆中新增加的对象数，公式：结束时堆中分配的对象数-
 - netBytes：测试对事后记录堆中新增加的字节数
 
+**设置处理字节数：B.SetBytes(n int64)**
+```go
+// SetBytes records the number of bytes processed in a single operation.
+// If this is called, the benchmark will report ns/op and MB/s.
+func (b *B) SetBytes(n int64) { b.bytes = n }
+```
+这是一个比较含糊的函数，通过其函数说明很难明白其作用。 
+
+其实它是用来设置单次迭代处理的字节数，一旦设置了这个字节数， 那么输出报告中将会呈现“xxx MB/s”的信息， 用来表示待测函数处理字节的性能。
+待测函数每次处理多少字节数只有用户清楚，所以需要用户设置。 
+
+举个例子，待测函数每次执行处理1M数据，如果我们想看待测函数处理数据的性能，那么我们在测试中设置 SetByte(1024 *1024)，
+假如待测函数需要执行1s的话，那么结果中将会出现 “1 MB/s”（约等于）的信息。示 例代码如下所示：
