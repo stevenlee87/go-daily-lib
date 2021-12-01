@@ -206,7 +206,7 @@ type B struct {
 - timerOn：计时启动标志，默认为false，启动计时为true
 - startAllocs：测试启动时记录堆中分配的对象数
 - startBytes：测试启动时记录堆中分配的字节数
-- netAllocs：测试结束后记录堆中新增加的对象数，公式：结束时堆中分配的对象数-
+- netAllocs：测试结束后记录堆中新增加的对象数，公式：结束时堆中分配的对象数
 - netBytes：测试对事后记录堆中新增加的字节数
 
 **设置处理字节数：B.SetBytes(n int64)**
