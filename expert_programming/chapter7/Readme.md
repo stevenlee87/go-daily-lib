@@ -221,4 +221,141 @@ func (b *B) SetBytes(n int64) { b.bytes = n }
 待测函数每次处理多少字节数只有用户清楚，所以需要用户设置。 
 
 举个例子，待测函数每次执行处理1M数据，如果我们想看待测函数处理数据的性能，那么我们在测试中设置 SetByte(1024 *1024)，
-假如待测函数需要执行1s的话，那么结果中将会出现 “1 MB/s”（约等于）的信息。示 例代码如下所示：
+假如待测函数需要执行1s的话，那么结果中将会出现 “1 MB/s”（约等于）的信息。示例代码如下所示：
+```go
+func BenchmarkSetBytes(b *testing.B) {
+    b.SetBytes(1024 * 1024)
+    for i := 0; i < b.N; i++ {
+        time.Sleep(1 * time.Second) // 模拟待测函数
+    }
+}
+```
+
+打印结果：
+```go
+goos: darwin
+goarch: amd64
+pkg: github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest
+cpu: Intel(R) Core(TM) i5-8279U CPU @ 2.40GHz
+BenchmarkSetBytes
+BenchmarkSetBytes-8   	       1	1004217211 ns/op	   1.04 MB/s
+PASS
+```
+
+可以看到测试执行了一次，花费时间约1S，数据处理能力约为1MB/s。
+
+B.N是如何调整的？  
+B.launch()方法里最终决定B.N的值。我们看下伪代码：  
+```go
+func (b *B) launch() { // 此方法自动测算执行次数，但调用前必须调用run1以便自动计算次数
+    d := b.benchTime
+    for n := 1; !b.failed && b.duration < d && n < 1e9; { // 最少执行b.benchTime（默认为1s）时间，最多执行1e9次
+        last := n
+        n = int(d.Nanoseconds()) // 预测接下来要执行多少次，b.benchTime/每个操作耗时
+        if nsop := b.nsPerOp(); nsop != 0 {
+            n /= int(nsop)
+        }
+        n = max(min(n+n/5, 100*last), last+1) // 避免增长较快，先增长20%，至少增长1次
+        n = roundUp(n) // 下次迭代次数向上取整到10的指数，方便阅读
+        b.runN(n)
+    }
+}
+```
+
+不考虑程序出错，而且用户没有主动停止测试的场景下，每个性能测试至少要执行b.benchTime长的秒数，默认为1s。
+先执行一遍的意义在于看用户代码执行一次要花费多长时间，如果时间较短，那么b.N值要足够大才可以测得更精确，如果时间较长，b.N值相应的会减少，
+否则会影响测试效率。
+
+最终的b.N会被定格在某个10的指数级，是为了方便阅读测试报告。
+
+**内存是如何统计的？**
+
+我们知道在测试开始时，会把当前内存值记入到b.startAllocs和b.startBytes中，测试结束时，会用最终内存值与开始时的内存值相减，
+得到净增加的内存值，并记入到b.netAllocs和b.netBytes中。
+
+每个测试结束，会把结果保存到BenchmarkResult对象里，该对象里保存了输出报告所必需的统计信息：  
+```go
+// BenchmarkResult contains the results of a benchmark run.
+type BenchmarkResult struct {
+	N         int           // The number of iterations.
+	T         time.Duration // The total time taken.
+	Bytes     int64         // Bytes processed in one iteration.
+	MemAllocs uint64        // The total number of memory allocations.
+	MemBytes  uint64        // The total number of bytes allocated.
+
+	// Extra records additional metrics reported by ReportMetric.
+	Extra map[string]float64
+}
+```
+
+其中MemAllocs和MemBytes分别对应b.netAllocs和b.netBytes。
+
+那么最终统计时只需要把净增加值除以b.N即可得到每次新增多少内存了。
+
+每个操作内存对象新增值：
+```go
+// AllocsPerOp returns the "allocs/op" metric,
+// which is calculated as r.MemAllocs / r.N.
+func (r BenchmarkResult) AllocsPerOp() int64 {
+	if v, ok := r.Extra["allocs/op"]; ok {
+		return int64(v)
+	}
+	if r.N <= 0 {
+		return 0
+	}
+	return int64(r.MemAllocs) / int64(r.N)
+}
+```
+
+每个操作内存字节数新增值：  
+```go
+// AllocedBytesPerOp returns the "B/op" metric,
+// which is calculated as r.MemBytes / r.N.
+func (r BenchmarkResult) AllocedBytesPerOp() int64 {
+	if v, ok := r.Extra["B/op"]; ok {
+		return int64(v)
+	}
+	if r.N <= 0 {
+		return 0
+	}
+	return int64(r.MemBytes) / int64(r.N)
+}
+```
+
+### 7.3.5 示例测试实现原理
+
+简介
+示例测试相对于单元测试和性能测试来说，其实现机制比较简单。它没有复杂的数据结构，也不需要额外的流程控制，其核心工作原理在于收集测试过程中的打印日志，然后与期望字符串做比较，最后得出是否一致的报告。
+
+testing/example.go  
+**数据结构**
+
+```go
+type InternalExample struct {
+    Name      string    // 测试名称
+    F         func()   // 测试函数
+    Output    string    // 期望字符串
+    Unordered bool      // 输出是否是无序的
+}
+```
+
+比如，示例测试如下：  
+```go
+// 检测乱序输出
+func ExamplePrintNames() {
+    gotest.PrintNames()
+    // Unordered output:
+    // Jim
+    // Bob
+    // Tom
+    // Sue
+}
+```
+
+该示例测试经过编译后，产生的数据结构成员如下：
+
+- InternalExample.Name = "ExamplePrintNames";
+- InternalExample.F = ExamplePrintNames()
+- InternalExample.Output = "Jim\n Bob\n Tom\n Sue\n"
+- InternalExample.Unordered = true;
+其中Output是包含换行符的字符串。

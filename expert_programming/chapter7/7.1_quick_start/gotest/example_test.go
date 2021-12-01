@@ -37,7 +37,7 @@ ExamplePrintNames()：待测试函数有多行输出，但输出次序不确定�
 ~/project/golang/go-daily-lib/expert_programming/chapter7/example$ go test example_test.go
 ok      command-line-arguments  0.515s
 
-1. 例子测试函数名需要以”Example”开头；
+1. 示例测试函数名需要以”Example”开头；
 2. 检测单行输出格式为“// Output: <期望字符串>”；
 3. 检测多行输出格式为“// Output: \ <期望字符串> \ <期望字符串>”，每个期望字符串占一行；
 4. 检测无序输出格式为”// Unordered output: \ <期望字符串> \ <期望字符串>”，每个期望字符串占一 行；
