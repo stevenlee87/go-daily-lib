@@ -10,6 +10,9 @@ import (
 func main() {
 	stat, _ := os.Stdin.Stat()
 
+	fmt.Println(stat.Mode())
+	fmt.Println(os.ModeCharDevice)
+	fmt.Println("test:", (stat.Mode() & os.ModeCharDevice))
 	if (stat.Mode() & os.ModeCharDevice) == 0 {
 
 		var buf []byte
