@@ -468,7 +468,7 @@ ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quic
 ```
 前后两次执行测试，参数没变，源文件也没变化，第二次执行时会自动从缓存中获取结果，结果中“cached”即表示结果从缓存中获取。
 
-**禁用缓存**
+**禁用缓存**  
 测试时使用一个不在“可缓存参数”集合中的参数，就不会使用缓存，比较常用的方法是指定一个参数“-count=1”。
 
 下面演示一个禁用缓存的例子：
@@ -482,3 +482,138 @@ ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quic
 ```
 
 第三次执行使用了参数"-count=1"，所以执行时不会从缓存中获取结果。
+
+## 7.4 扩展阅读
+
+go test非常容易上手，但并不代表其功能单一，它提供了丰富的参数接口以便满足各种测试场景。
+
+本节，我们主要介绍一些常用的参数，通过前面实现原理的学习和本节的示例，希望读者可以准确掌握其用法，以便在工作中提供便利。
+
+### 7.4.1 测试参数
+
+**前言**  
+go test有非常丰富的参数，一些参数用于控制测试的编译，另一些参数控制测试的执行。
+
+有关测试覆盖率、vet和pprof相关的参数先略过，我们在讨论相关内容时再详细介绍。
+
+**控制编译的参数**  
+**-args**  
+指示go test把-args后面的参数带到测试中去。具体的测试函数会跟据此参数来控制测试流程。
+
+-args后面可以附带多个参数，所有参数都将以字符串形式传入，每个参数做为一个string，并存放到字符串切片中。
+```go
+// TestArgs 用于演示如何解析-args参数
+func TestArgs(t *testing.T) {
+    if !flag.Parsed() {
+        flag.Parse()
+    }
+
+    argList := flag.Args() // flag.Args() 返回 -args 后面的所有参数，以切片表示，每个元素代表一个参数
+    for _, arg := range argList {
+        if arg == "cloud" {
+            t.Log("Running in cloud.")
+        }else {
+            t.Log("Running in other mode.")
+        }
+    }
+}
+```
+
+执行测试时带入参数：
+```go
+go test . -run TestArgs -v -args "cloud"
+=== RUN   TestArgs
+    testargs_test.go:16: Running in cloud.
+--- PASS: TestArgs (0.00s)
+PASS
+ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest  3.054s
+```
+通过参数-args指定传递给测试的参数。
+
+**-json**  
+-json 参数用于指示go test将结果输出转换成json格式，以方便自动化测试解析使用。
+
+示例如下：
+```go
+go test -run TestAdd -json
+{"Time":"2021-12-07T15:22:07.760538+08:00","Action":"run","Package":"github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest","Test":"TestAdd"}
+{"Time":"2021-12-07T15:22:07.760926+08:00","Action":"output","Package":"github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest","Test":"TestAdd","Output":"=== RUN   TestAdd\n"}
+{"Time":"2021-12-07T15:22:07.760973+08:00","Action":"output","Package":"github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest","Test":"TestAdd","Output":"--- PASS: TestAdd (0.00s)\n"}
+{"Time":"2021-12-07T15:22:07.760992+08:00","Action":"pass","Package":"github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest","Test":"TestAdd","Elapsed":0}
+{"Time":"2021-12-07T15:22:07.761019+08:00","Action":"output","Package":"github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest","Output":"PASS\n"}
+{"Time":"2021-12-07T15:22:07.761075+08:00","Action":"output","Package":"github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest","Output":"ok  \tgithub.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest\t1.034s\n"}
+{"Time":"2021-12-07T15:22:07.761104+08:00","Action":"pass","Package":"github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest","Elapsed":1.035}
+```
+
+**-o**  
+-o 参数指定生成的二进制可执行程序，并执行测试，测试结束不会删除该程序。
+
+没有此参数时，go test生成的二进制可执行程序存放到临时目录，执行结束便删除。
+
+示例如下：
+```go
+go test -run TestAdd -o TestAdd
+PASS
+ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest  3.078s
+```
+
+本例中，使用-o 参数指定生成二进制文件"TestAdd"并存放到当前目录，测试执行结束后，仍然可以直接执行该二进制程序。
+
+控制测试的参数  
+-bench regexp  
+go test默认不执行性能测试，使用-bench参数才可以运行，而且只运行性能测试函数。
+
+其中正则表达式用于筛选所要执行的性能测试。如果要执行所有的性能测试，使用参数"-bench ."或"-bench=."。
+
+此处的正则表达式不是严格意义上的正则，而是种包含关系。
+
+比如有如下三个性能测试：
+
+- func BenchmarkMakeSliceWithoutAlloc(b *testing.B)
+- func BenchmarkMakeSliceWithPreAlloc(b *testing.B)
+- func BenchmarkSetBytes(b *testing.B)
+使用参数“-bench=Slice”，那么前两个测试因为都包含"Slice"，所以都会被执行，第三个测试则不会执行。
+
+对于包含子测试的场景下，匹配是按层匹配的。举一个包含子测试的例子：
+```go
+func BenchmarkSub(b *testing.B) {
+    b.Run("A=1", benchSub1)
+    b.Run("A=2", benchSub2)
+    b.Run("B=1", benchSub3)
+}
+```
+
+测试函数命名规则中，子测试的名字需要以父测试名字做为前缀并以"/"连接，上面的例子实际上是包含4个测试：
+
+- Sub
+- Sub/A=1
+- Sub/A=2
+- Sub/B=1  
+如果想执行三个子测试，那么使用参数“-bench Sub”。如果只想执行“Sub/A=1”，则使用参数"-bench Sub/A=1"。如果想执行"Sub/A=1"和“Sub/A=2”，
+则使用参数"-bench Sub/A="。
+
+-benchtime s  
+-benchtime指定每个性能测试的执行时间，如果不指定，则使用默认时间1s。
+
+例如，执定每个性能测试执行2s，则参数为："go test -bench Sub/A=1 -benchtime 2s"。
+
+-cpu   
+参数提供一个CPU个数的列表，提供此列表后，那么测试将按照这个列表指定的CPU数设置GOMAXPROCS并分别测试。
+
+比如“-cpu 1,2”，那么每个测试将执行两次，一次是用1个CPU执行，一次是用2个CPU执行。 例如，使用命令"go test -bench Sub/A=1 -cpu 1,2,3,4" 执行测试：
+
+```go
+go test -bench Sub/A=1 -cpu 1,2,3,4
+goos: darwin
+goarch: amd64
+pkg: github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start
+cpu: Intel(R) Core(TM) i5-8279U CPU @ 2.40GHz
+BenchmarkSub/A=1                    2317            497982 ns/op
+BenchmarkSub/A=1-2                  2617            437995 ns/op
+BenchmarkSub/A=1-3                  2557            457854 ns/op
+BenchmarkSub/A=1-4                  2491            489951 ns/op
+PASS
+ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start 5.239s
+
+```
+测试结果中测试名后面的-2、-3、-4分别代表执行时GOMAXPROCS的数值。 如果GOMAXPROCS为1，则不显示。
