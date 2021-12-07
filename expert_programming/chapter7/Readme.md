@@ -359,3 +359,126 @@ func ExamplePrintNames() {
 - InternalExample.Output = "Jim\n Bob\n Tom\n Sue\n"
 - InternalExample.Unordered = true;
 其中Output是包含换行符的字符串。
+
+### 7.3.6 Main测试的实现原理
+
+**简介**  
+每一种测试（单元测试、性能测试或示例测试），都有一个数据类型与其对应。
+
+单元测试：InternalTest  
+性能测试：InternalBenchmark  
+示例测试：InternalExample  
+测试编译阶段，每个测试都会被放到指定类型的切片中，测试执行时，这些测试将会被放到testing.M数据结构中进行调度。
+而testing.M即是MainTest对应的数据结构。
+
+**数据结构**  
+源码src\testing/testing.go:M定义了testing.M的数据结构：
+```go
+// M is a type passed to a TestMain function to run the actual tests.
+type M struct {
+	deps       testDeps
+	tests      []InternalTest
+	benchmarks []InternalBenchmark
+	examples   []InternalExample
+
+	timer     *time.Timer
+	afterOnce sync.Once
+
+	numRun int
+
+	// value to pass to os.Exit, the outer test func main
+	// harness calls os.Exit with this code. See #34129.
+	exitCode int
+}
+```
+
+单元测试、性能测试和示例测试在经过编译后都会被存放到一个testing.M数据结构中，在测试执行时该数据结构将传递给TestMain()，
+真正执行测试的是testing.M的Run()方法，这个后面我们会继续分析。
+
+timer用于指定测试的超时时间，可以通过参数timeout <n>指定，当测试执行超时后将会立即结束并判定为失败。
+
+**执行测试**
+
+TestMain()函数通常会有一个m.Run()方法，该方法会执行单元测试、性能测试和示例测试，如果用户实现了TestMain()但没有调用m.Run()的话，
+那么什么测试都不会被执行。
+
+m.Run()不仅会执行测试，还会做一些初始化工作，比如解析参数、起动定时器、跟据参数指示创建一系列的文件等。
+
+m.Run()使用三个独立的方法来执行三种测试：
+
+- 单元测试：runTests(m.deps.MatchString, m.tests)
+- 性能测试：runExamples(m.deps.MatchString, m.examples)
+- 示例测试：runBenchmarks(m.deps.ImportPath(), m.deps.MatchString, m.benchmarks)
+其中m.deps里存放了测试匹配相关的内容，暂时先不用关注。
+
+### 7.3.7 go test的工作机制
+
+**前言**  
+前面的章节我们分析了每种测试的数据结构及其实现原理，本节我们看一下go test的执行机制。
+
+Go 有多个命令行工具，go test只是其中一个。go test命令的函数入口在src\cmd\go\internal\test\test.go:runTest()，
+这个函数就是go test的大脑。
+
+**两种运行模式**  
+go test运行时，跟据是否指定package分为两种模式，即本地目录模式和包列表模式。
+
+**本地目录模式**  
+当执行测试并没有指定package时，即以本地目录模式运行，例如使用"go test"或者"go test -v"来启动测试。
+
+本地目录模式下，go test编译当前目录的源码文件和测试文件，并生成一个二进制文件，最后执行并打印结果。
+
+**包列表模式**  
+当执行测试并显式指定package时，即以包列表模式运行，例如使用"go test math"来启动测试。
+
+包列表模式下，go test为每个包生成一个测试二进制文件，并分别执行它。 包列表模式是在Go 1.10版本才引入的，它会把每个包的测试结果写入到本地临时
+文件中做为缓存，下次执行时会直接从缓存中读取测试结果，以便节省测试时间。
+
+**缓存机制**
+当满足一定的条件，测试的缓存是自动启用的，也可以显式的关闭缓存。
+
+**测试结果缓存**
+如果一次测试中，其参数全部来自"可缓存参数"集合，那么本次测试结果将被缓存。
+
+**可缓存参数集合如下**：
+
+- -cpu
+- -list
+- -parallel
+- -run
+- -short
+- -v  
+需要注意的是，测试参数必须全部来自这个集合，其结果才会被缓存，没有参数或包含任一此集合之外的参数，结果都不会缓存。
+
+**使用缓存结果**  
+如果满足条件，测试不会真正执行，而是从缓存中取出结果并呈现，结果中会有"cached"字样，表示来自缓存。
+
+使用缓存结果也需要满足一定的条件：
+
+- 本次测试的二进制及测试参数与之前的一次完全一致；
+- 本次测试的源文件及环境变量与之前的一次完全一致；
+- 之前的一次测试结果是成功的；
+- 本次测试运行模式是列表模式；
+
+下面演示一个使用缓存的例子：
+```go
+go test .
+ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest  1.273s
+go test .
+ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest  (cached)
+```
+前后两次执行测试，参数没变，源文件也没变化，第二次执行时会自动从缓存中获取结果，结果中“cached”即表示结果从缓存中获取。
+
+**禁用缓存**
+测试时使用一个不在“可缓存参数”集合中的参数，就不会使用缓存，比较常用的方法是指定一个参数“-count=1”。
+
+下面演示一个禁用缓存的例子：
+```go
+go test .
+ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest  1.273s
+go test .
+ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest  (cached)
+go test . -count=1
+ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest  0.565s
+```
+
+第三次执行使用了参数"-count=1"，所以执行时不会从缓存中获取结果。
