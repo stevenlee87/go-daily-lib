@@ -17,7 +17,7 @@
 广泛应用于Go源码和各种开源框架中，用于展示某个包或某个方法的用法。  
 比如，Go标准库中，mail包展示如何从一个字符串解析出邮件列表的用法，非常直观易懂。  
 源码位于 src/net/mail/example_test.go 中：  
-```go
+```text
 func ExampleParseAddressList() {
     const list = "Alice <alice@example.com>, Bob <bob@example.com>, Eve <eve@example.com>"
     emails, err := mail.ParseAddressList(list)
@@ -140,7 +140,7 @@ TB接口通过在接口中定义一个名为private(）的私有方法，保证�
 数据结构
 源码包src/testing/testing.go:T定义了其数据结构：
 
-```go
+```text
 type T struct {
     common
     isParallel bool
@@ -170,7 +170,7 @@ context： 控制测试的并发调度
 
 源码包src/testing/benchmark.go:B定义了性能测试的数据结构，我们提取其比较重要的一些成员进行分析：  
 
-```go
+```text
 type B struct {
 	common
 	importPath       string // import path of the package containing the benchmark
@@ -210,7 +210,7 @@ type B struct {
 - netBytes：测试对事后记录堆中新增加的字节数
 
 **设置处理字节数：B.SetBytes(n int64)**
-```go
+```text
 // SetBytes records the number of bytes processed in a single operation.
 // If this is called, the benchmark will report ns/op and MB/s.
 func (b *B) SetBytes(n int64) { b.bytes = n }
@@ -222,7 +222,7 @@ func (b *B) SetBytes(n int64) { b.bytes = n }
 
 举个例子，待测函数每次执行处理1M数据，如果我们想看待测函数处理数据的性能，那么我们在测试中设置 SetByte(1024 *1024)，
 假如待测函数需要执行1s的话，那么结果中将会出现 “1 MB/s”（约等于）的信息。示例代码如下所示：
-```go
+```text
 func BenchmarkSetBytes(b *testing.B) {
     b.SetBytes(1024 * 1024)
     for i := 0; i < b.N; i++ {
@@ -232,7 +232,7 @@ func BenchmarkSetBytes(b *testing.B) {
 ```
 
 打印结果：
-```go
+```text
 goos: darwin
 goarch: amd64
 pkg: github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest
@@ -246,7 +246,7 @@ PASS
 
 B.N是如何调整的？  
 B.launch()方法里最终决定B.N的值。我们看下伪代码：  
-```go
+```text
 func (b *B) launch() { // 此方法自动测算执行次数，但调用前必须调用run1以便自动计算次数
     d := b.benchTime
     for n := 1; !b.failed && b.duration < d && n < 1e9; { // 最少执行b.benchTime（默认为1s）时间，最多执行1e9次
@@ -274,7 +274,7 @@ func (b *B) launch() { // 此方法自动测算执行次数，但调用前必须
 得到净增加的内存值，并记入到b.netAllocs和b.netBytes中。
 
 每个测试结束，会把结果保存到BenchmarkResult对象里，该对象里保存了输出报告所必需的统计信息：  
-```go
+```text
 // BenchmarkResult contains the results of a benchmark run.
 type BenchmarkResult struct {
 	N         int           // The number of iterations.
@@ -293,7 +293,7 @@ type BenchmarkResult struct {
 那么最终统计时只需要把净增加值除以b.N即可得到每次新增多少内存了。
 
 每个操作内存对象新增值：
-```go
+```text
 // AllocsPerOp returns the "allocs/op" metric,
 // which is calculated as r.MemAllocs / r.N.
 func (r BenchmarkResult) AllocsPerOp() int64 {
@@ -308,7 +308,7 @@ func (r BenchmarkResult) AllocsPerOp() int64 {
 ```
 
 每个操作内存字节数新增值：  
-```go
+```text
 // AllocedBytesPerOp returns the "B/op" metric,
 // which is calculated as r.MemBytes / r.N.
 func (r BenchmarkResult) AllocedBytesPerOp() int64 {
@@ -330,7 +330,7 @@ func (r BenchmarkResult) AllocedBytesPerOp() int64 {
 testing/example.go  
 **数据结构**
 
-```go
+```text
 type InternalExample struct {
     Name      string    // 测试名称
     F         func()   // 测试函数
@@ -340,7 +340,7 @@ type InternalExample struct {
 ```
 
 比如，示例测试如下：  
-```go
+```text
 // 检测乱序输出
 func ExamplePrintNames() {
     gotest.PrintNames()
@@ -373,7 +373,7 @@ func ExamplePrintNames() {
 
 **数据结构**  
 源码src\testing/testing.go:M定义了testing.M的数据结构：
-```go
+```text
 // M is a type passed to a TestMain function to run the actual tests.
 type M struct {
 	deps       testDeps
@@ -460,7 +460,7 @@ go test运行时，跟据是否指定package分为两种模式，即本地目录
 - 本次测试运行模式是列表模式；
 
 下面演示一个使用缓存的例子：
-```go
+```text
 go test .
 ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest  1.273s
 go test .
@@ -472,7 +472,7 @@ ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quic
 测试时使用一个不在“可缓存参数”集合中的参数，就不会使用缓存，比较常用的方法是指定一个参数“-count=1”。
 
 下面演示一个禁用缓存的例子：
-```go
+```text
 go test .
 ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest  1.273s
 go test .
@@ -501,7 +501,7 @@ go test有非常丰富的参数，一些参数用于控制测试的编译，另�
 指示go test把-args后面的参数带到测试中去。具体的测试函数会跟据此参数来控制测试流程。
 
 -args后面可以附带多个参数，所有参数都将以字符串形式传入，每个参数做为一个string，并存放到字符串切片中。
-```go
+```text
 // TestArgs 用于演示如何解析-args参数
 func TestArgs(t *testing.T) {
     if !flag.Parsed() {
@@ -520,7 +520,7 @@ func TestArgs(t *testing.T) {
 ```
 
 执行测试时带入参数：
-```go
+```text
 go test . -run TestArgs -v -args "cloud"
 === RUN   TestArgs
     testargs_test.go:16: Running in cloud.
@@ -534,7 +534,7 @@ ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quic
 -json 参数用于指示go test将结果输出转换成json格式，以方便自动化测试解析使用。
 
 示例如下：
-```go
+```text
 go test -run TestAdd -json
 {"Time":"2021-12-07T15:22:07.760538+08:00","Action":"run","Package":"github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest","Test":"TestAdd"}
 {"Time":"2021-12-07T15:22:07.760926+08:00","Action":"output","Package":"github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest","Test":"TestAdd","Output":"=== RUN   TestAdd\n"}
@@ -551,7 +551,7 @@ go test -run TestAdd -json
 没有此参数时，go test生成的二进制可执行程序存放到临时目录，执行结束便删除。
 
 示例如下：
-```go
+```text
 go test -run TestAdd -o TestAdd
 PASS
 ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest  3.078s
@@ -575,7 +575,7 @@ go test默认不执行性能测试，使用-bench参数才可以运行，而且�
 使用参数“-bench=Slice”，那么前两个测试因为都包含"Slice"，所以都会被执行，第三个测试则不会执行。
 
 对于包含子测试的场景下，匹配是按层匹配的。举一个包含子测试的例子：
-```go
+```text
 func BenchmarkSub(b *testing.B) {
     b.Run("A=1", benchSub1)
     b.Run("A=2", benchSub2)
@@ -602,7 +602,7 @@ func BenchmarkSub(b *testing.B) {
 
 比如“-cpu 1,2”，那么每个测试将执行两次，一次是用1个CPU执行，一次是用2个CPU执行。 例如，使用命令"go test -bench Sub/A=1 -cpu 1,2,3,4" 执行测试：
 
-```go
+```text
 go test -bench Sub/A=1 -cpu 1,2,3,4
 goos: darwin
 goarch: amd64
@@ -617,3 +617,15 @@ ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quic
 
 ```
 测试结果中测试名后面的-2、-3、-4分别代表执行时GOMAXPROCS的数值。 如果GOMAXPROCS为1，则不显示。
+
+```text
+go test -bench Sub/A=1 -count 2
+goos: darwin
+goarch: amd64
+pkg: github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start
+cpu: Intel(R) Core(TM) i5-8279U CPU @ 2.40GHz
+BenchmarkSub/A=1-8                  2233            508007 ns/op
+BenchmarkSub/A=1-8                  2142            538325 ns/op
+PASS
+ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start 3.079s
+```
