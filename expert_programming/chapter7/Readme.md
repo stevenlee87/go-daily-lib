@@ -496,8 +496,8 @@ go test有非常丰富的参数，一些参数用于控制测试的编译，另�
 
 有关测试覆盖率、vet和pprof相关的参数先略过，我们在讨论相关内容时再详细介绍。
 
-**控制编译的参数**  
-**-args**  
+**1.控制编译的参数**  
+**1) -args**  
 指示go test把-args后面的参数带到测试中去。具体的测试函数会跟据此参数来控制测试流程。
 
 -args后面可以附带多个参数，所有参数都将以字符串形式传入，每个参数做为一个string，并存放到字符串切片中。
@@ -530,7 +530,7 @@ ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quic
 ```
 通过参数-args指定传递给测试的参数。
 
-**-json**  
+**2) json**  
 -json 参数用于指示go test将结果输出转换成json格式，以方便自动化测试解析使用。
 
 示例如下：
@@ -545,7 +545,7 @@ go test -run TestAdd -json
 {"Time":"2021-12-07T15:22:07.761104+08:00","Action":"pass","Package":"github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest","Elapsed":1.035}
 ```
 
-**-o**  
+**3)-o**  
 -o 参数指定生成的二进制可执行程序，并执行测试，测试结束不会删除该程序。
 
 没有此参数时，go test生成的二进制可执行程序存放到临时目录，执行结束便删除。
@@ -559,8 +559,8 @@ ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quic
 
 本例中，使用-o 参数指定生成二进制文件"TestAdd"并存放到当前目录，测试执行结束后，仍然可以直接执行该二进制程序。
 
-控制测试的参数  
--bench regexp  
+**2.控制测试的参数**  
+**1) -bench regexp**  
 go test默认不执行性能测试，使用-bench参数才可以运行，而且只运行性能测试函数。
 
 其中正则表达式用于筛选所要执行的性能测试。如果要执行所有的性能测试，使用参数"-bench ."或"-bench=."。
@@ -592,12 +592,12 @@ func BenchmarkSub(b *testing.B) {
 如果想执行三个子测试，那么使用参数“-bench Sub”。如果只想执行“Sub/A=1”，则使用参数"-bench Sub/A=1"。如果想执行"Sub/A=1"和“Sub/A=2”，
 则使用参数"-bench Sub/A="。
 
--benchtime s  
+**2) -benchtime s**  
 -benchtime指定每个性能测试的执行时间，如果不指定，则使用默认时间1s。
 
 例如，执定每个性能测试执行2s，则参数为："go test -bench Sub/A=1 -benchtime 2s"。
 
--cpu   
+**3) -cpu**   
 参数提供一个CPU个数的列表，提供此列表后，那么测试将按照这个列表指定的CPU数设置GOMAXPROCS并分别测试。
 
 比如“-cpu 1,2”，那么每个测试将执行两次，一次是用1个CPU执行，一次是用2个CPU执行。 例如，使用命令"go test -bench Sub/A=1 -cpu 1,2,3,4" 执行测试：
@@ -618,6 +618,10 @@ ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quic
 ```
 测试结果中测试名后面的-2、-3、-4分别代表执行时GOMAXPROCS的数值。 如果GOMAXPROCS为1，则不显示。
 
+**4) -count n**  
+-count指定每个测试执行的次数，默认执行一次。
+
+例如，指定测试执行2次：
 ```text
 go test -bench Sub/A=1 -count 2
 goos: darwin
@@ -629,3 +633,111 @@ BenchmarkSub/A=1-8                  2142            538325 ns/op
 PASS
 ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start 3.079s
 ```
+
+可以看到结果中也将呈现两次的测试结果。
+
+如果使用-count指定执行次数的同时还指定了-cpu列表，那么测试将在每种CPU数量下执行count指定的次数。
+
+注意，示例测试不关心-count和-cpu参数，它总是执行一次。
+
+**5) -failfast**  
+默认情况下，go test将会执行所有匹配到的测试，并最后打印测试结果，无论成功或失败。
+
+-failfast指定如果有测试出现失败，则立即停止测试。这在有大量的测试需要执行时，能够更快的发现问题。
+
+**6) -list regexp**  
+-list 只是列出匹配成功的测试函数，并不真正执行。而且，不会列出子函数。
+
+例如，使用参数"-list Sub"则只会列出包含子测试的三个测试，但不会列出子测试：
+```text
+~/project/golang/go-daily-lib/expert_programming/chapter7/7.1_quick_start$ go test -list Sub
+BenchmarkSub
+ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start 1.090s
+```
+
+**7) -parallel n**  
+指定测试的最大并发数。
+
+当测试使用t.Parallel()方法将测试转为并发时，将受到最大并发数的限制，默认情况下最多有GOMAXPROCS个测试并发，其他的测试只能阻塞等待。
+
+**8) -run regexp**
+跟据正则表达式执行单元测试和示例测试。正则匹配规则与-bench 类似。
+
+**9) -timeout d**  
+默认情况下，测试执行超过10分钟就会超时而退出。
+
+例时，我们把超时时间设置为1s，由本来需要3s的测试就会因超时而退出：
+```text
+~/project/golang/go-daily-lib/expert_programming/chapter7/7.2_advanced_test/7.2.1sub$ go test -timeout=1s
+panic: test timed out after 1s
+
+goroutine 33 [running]:
+testing.(*M).startAlarm.func1()
+```
+
+设置超时可以按秒、按分和按时：
+
+按秒设置：-timeout xs或-timeout=xs  
+按分设置：-timeout xm或-timeout=xm  
+按时设置：-timeout xh或-timeout=xh  
+
+**10) -v**  
+默认情况下，测试结果只打印简单的测试结果，**-v 参数可以打印详细的日志。**
+
+性能测试下，总是打印日志，因为日志有时会影响性能结果。
+
+**11) -benchmem**  
+默认情况下，性能测试结果只打印运行次数、每个操作耗时。使用-benchmem则可以打印每个操作分配的字节数、每个操作分配的对象数。
+
+```text
+// 没有使用-benchmem
+~/project/golang/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest$ go test -bench=.
+goos: darwin
+goarch: amd64
+pkg: github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest
+cpu: Intel(R) Core(TM) i5-8279U CPU @ 2.40GHz
+BenchmarkSetBytes-8                            1        1003846510 ns/op           1.04 MB/s
+BenchmarkMakeSliceWithoutAlloc-8            1982            520529 ns/op
+BenchmarkMakeSliceWithPreAlloc-8            7324            154560 ns/op
+PASS
+ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest  4.128s
+
+```
+
+```text
+// 使用-benchmem
+go test -bench=. -benchmem
+goos: darwin
+goarch: amd64
+pkg: github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest
+cpu: Intel(R) Core(TM) i5-8279U CPU @ 2.40GHz
+BenchmarkSetBytes-8                            1        1005064363 ns/op           1.04 MB/s         112 B/op          4 allocs/op
+BenchmarkMakeSliceWithoutAlloc-8            2032            493115 ns/op         4654348 B/op         30 allocs/op
+BenchmarkMakeSliceWithPreAlloc-8            8691            141946 ns/op          802819 B/op          1 allocs/op
+PASS
+ok      github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest  3.493s
+```
+此处，每个操作的含义是放到循环中的操作，如下示例所示：
+```text
+func BenchmarkMakeSliceWithoutAlloc(b *testing.B) {
+    for i := 0; i < b.N; i++ {
+        gotest.MakeSliceWithoutAlloc() // 一次操作
+    }
+}
+```
+
+### 7.4.2 benchstat
+
+Go官方推荐的性能测试分析工具benchstat
+
+```text
+go get golang.org/x/perf/cmd/benchstat
+go: downloading golang.org/x/perf v0.0.0-20211012211434-03971e389cd3
+go get: added golang.org/x/perf v0.0.0-20211012211434-03971e389cd3
+```
+
+**1) 分析一组样本**  
+benchstat old.txt
+
+**2) 分析两组样本**  
+benchstat old.txt new.txt
