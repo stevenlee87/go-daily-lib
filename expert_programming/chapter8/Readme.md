@@ -30,3 +30,10 @@
 
 1.error接口  
 2.创建error
+
+### 8.1.3 链式error
+
+fmt.Errorf()讲根据格式动词来动态决定生成wrapError还是errorString。使用%v格式动词生成的error类型仍是errorString(没有实现Unwrap接口)
+
+## 8.2 defer
+
