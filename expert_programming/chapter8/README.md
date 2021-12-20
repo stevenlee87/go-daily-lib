@@ -156,3 +156,48 @@ ret++
 return
 ```
 函数真正返回前，在defer中对返回值做了+1操作，所以最终返回1
+
+### 8.2.3 实现原理
+
+1.数据结构  
+src/runtime/runtime2.go:_defer  
+
+2.defer的创建和执行  
+
+源码包中src/ime/panic.go定义了以下两个方法，分别用于创建defer和执行defer。  
+deferproc():   用于将defer函数处理成defer实例，并存人goroutine链表中；  
+deferreturn(): 用于将defer从goroutine链表中取出并执行。  
+
+可以简单地这么理解，编译器在编译阶段把defer语句替换成了函数deferproc(),在函数
+return前插人了函数deferreturnO。在运行时，每执行一次deferproc)都创建一个运行时_defer
+实例并存储，函数返回前执行deferreturn()依次取出_defer实例并执行。
+
+3.小结
+- defer定义的延迟函数参数在defer语句出现时就已经确定了；
+- defer定义的顺序与实际的执行顺序相反；
+- return不是原子操作，执行过程是：保存返回值（若有）->执行defer（若有）->执行ret跳转；
+- 申请资源后立即使用defer关闭资源是一个好习惯。
+
+### 8.2.4 性能优化
+
+defer 的实现机制在Go的演进过程中不断被优化，根据其实现机制的不同，可以把defer分为三种类型。
+- heap-allocated:存储在堆上的defer, Go 1.13之前只有这种类型。
+- stack-allocated:存储在栈上的defer,Go 1.13引入这种类型。
+- open-coded:开放编码类型的defer, Go 1.14引入这种类型。
+
+前面章节介绍的defer实际上是第一种类型，即存储在堆上的defer,但在Go 1.13及Go
+1.14引入新的类型后，原类型也没有被废弃，而是多种类型共存，编译器会决策使用何种类型
+优先使用open-coded(以下简称开放编码defer),stack-allocated(以下简称栈defer)次之，在
+有些编译器无法决定的场景或受限的场景中则会使用heap-allocated(以下简称堆defer)。
+defer的编译和执行需要编译器和Go runtime的配合，本节所指的“运行时”往往是指Go的runtime组件。
+
+1.堆defer  
+&emsp;&emsp;与其后出现的两种defer类型相比较，堆defer的痛点主要在于频繁的堆内存分配以及释放，性能稍差  
+2.栈defer  
+&emsp;&emsp;编译器会尽可能地把defer语句编译成栈类型，但由于栈空间有限，并不能把所有的defer都存储在栈中，所以还需要保留堆defer。  
+3.开放编码defer  
+1). 禁用编译器优化  
+2). 循环语句  
+3). 限制defer数量
+
+
