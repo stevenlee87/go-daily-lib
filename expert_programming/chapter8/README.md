@@ -200,4 +200,62 @@ defer的编译和执行需要编译器和Go runtime的配合，本节所指的�
 2). 循环语句  
 3). 限制defer数量
 
+## 8.3 panic
 
+### 8.3.2 工作机制
+
+1. panic()函数
+2. 工作流程  
+    
+3. 在panic的执行过程中有几个要点要明确：
+    - panic会递归执行协程中所有的defer，与函数正常退出时的执行顺序一致；
+    - panic不会处理其他协程中的defer；
+    - 当前协程中的defer处理完成后，触发程序退出。
+4. 小结
+
+### 8.3.3 源码剖析
+
+1.panic的真身  
+2.数据结构  
+3.gopanic分析  
+&emsp;1). 没有defer函数  
+&emsp;2). defer函数处理  
+&emsp;3). 嵌套defer  
+
+## 8.4 recover
+
+内置函数recover()用于消除panic并使程序恢复正常，看起来很简单，但下面有几个问题是否困扰到你：
+- recover()的返回值是什么？
+- 执行recover()之后程序将从哪里继续运行？
+- recover()为什么一定要在defer函数中使用？
+
+### 8.4.2 工作机制
+
+1.recover()函数
+
+recover()函数的返回值就是panic()函数的参数，当程序产生panic时，recover()函数就可用
+于消除panic.同时返回panic()函数的参数，如果程序没有发生panic,则recover()函数返回nil.
+
+如果panic()函数参数为nil,那么仍然是一个有效的panic,此时recover()函数仍然可以捕
+获panic，但返回值为nil。如以下代码所示，由于err为nil,所以字符串A得不到打印，
+panic可以被消除：
+```text
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println("A")
+		}
+	}()
+
+	panic(nil)
+	fmt.Println("B")
+```
+2.工作流程  
+
+3.小结  
+关于recover()函数，有几个要点要明确：
+- recover()函数调用必须要位于defer函数中，且不能出现在另一个嵌套函数中；
+- recover()函数成功处理异常后，无法再次回到本函数发生panic的位置继续执行；
+- recover()函数可以消除本函数产生或收到的panic，上游函数感知不到panic的发生。
+
+当函数中发生panic并用recover()函数恢复后，当前函数仍然会继续返回，对于匿名返回
+值，函数将返回相应类型的零值，对于具名返回值，函数将返回当前已经存在的值。
