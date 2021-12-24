@@ -40,3 +40,58 @@ Timer内容总结如下：
 实际上，每个Go应用程序都有一个协程专门负责管理所有的Timer，这个协程负责监控Timer是否过期，
 过期后执行一个预定义的动作， 这个动作对于Timer而言就是发送当前时间到管道中。
 
+1. 数据结构  
+1). Timer  
+源码包 src/time/sleep.go:Timer 定义了其数据结构：  
+```text
+type Timer struct {
+   C <-chan Time
+   r runtimeTimer
+}
+```  
+
+2). runtimeTimer  
+
+2. 实现原理  
+
+一个进程中的多个Timer都由底层的一个协程来管理，为了描述方便我们把这个协程称为系统协程。 
+
+我们想在后面的章节中单独介绍系统协程工作机制，本节，我们先简单介绍其工作过程。 
+
+系统协程把runtimeTimer存放在数组中，并按照 when 字段对所有的runtimeTimer进行堆排序，
+定时器触发时执行runtimeTimer中的预定义函数 f ，即完成了一次定时任务。  
+
+1). 创建Timer  
+2). 停止Timer  
+3). 重置Timer
+
+3. 小结  
+- NewTimer()创建一个新的Timer交给系统协程监控； 
+- Stop()通知系统协程删除指定的Timer; 
+- Reset()通知系统协程删除指定的Timer并再添加一个新的Timer；
+
+## 9.2 周期性定时器(Ticker)
+
+### 9.2.1 快速开始
+
+1. 简介
+
+Ticker是周期性定时器，即周期性的触发一个事件，通过Ticker本身提供的管道将事件传递出去。 
+
+Ticker的数据结构与Timer完全一致： 
+
+```text
+type Ticker struct { 
+    C <-chan Time
+    r runtimeTimer
+} 
+```
+
+Ticker对外仅暴露一个channel，指定的时间到来时就往该channel中写入系统时间，也即一个事件。 
+
+在创建Ticker时会指定一个时间，作为事件触发的周期。这也是Ticker与Timer的最主要的区别。 
+
+另外，ticker的英文原意是钟表的”滴哒”声，钟表周期性的产生”滴哒”声，也即周期性的产生事件。
+
+2. 使用场景
+1). 简单定时任务
