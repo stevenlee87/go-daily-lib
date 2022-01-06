@@ -19,6 +19,7 @@ func main() {
 }
 
 /*
+annotation：
 当append向切片x追加元素时，在空间足够存放新元素的情况下，新元素将从x[len(x)]位置开始存放，append会
 生成一个新的切片，但不会修改原切片x。
 Output:
