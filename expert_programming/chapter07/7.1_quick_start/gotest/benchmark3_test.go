@@ -3,7 +3,7 @@ package gotest_test
 import (
 	"testing"
 
-	"github.com/stevenlee87/go-daily-lib/expert_programming/chapter7/7.1_quick_start/gotest"
+	"github.com/stevenlee87/go-daily-lib/expert_programming/chapter07/7.1_quick_start/gotest"
 )
 
 func BenchmarkMakeByErrorsNew(b *testing.B) {
