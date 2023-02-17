@@ -1,0 +1,20 @@
+TimeStamp: "2023-02-17 18:31:01"
+Author: "WZP"
+PassWd: "Hello"
+Information:
+  Name: "Harry"
+  Age: "37"
+  Alise:
+    - "Lion"
+    - "NK"
+    - "KaQS"
+  Image: "/path/header.rpg"
+  Public: false
+
+Favorite:
+  Sport:
+    - "swimming"
+    - "football"
+  Music:
+    - "zui xuan min zu feng"
+  LuckyNumber: 99
