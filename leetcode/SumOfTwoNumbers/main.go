@@ -2,6 +2,7 @@ package main
 
 import "fmt"
 
+// 两数之和
 func twoSum(nums []int, target int) []int {
 	// 创建一个 map 用于存储元素的值与它们的索引的映射
 	hashTable := make(map[int]int)
