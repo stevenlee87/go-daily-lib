@@ -20,4 +20,7 @@ func main() {
 	division_sum = c / 10
 	fmt.Printf("remainder_sum is: %d, division_sum is: %d\n", remainder_sum, division_sum)
 	// 8 0
+
+	division_sum = 3 / 2
+	fmt.Printf("division_sum is: %d\n", division_sum)
 }
