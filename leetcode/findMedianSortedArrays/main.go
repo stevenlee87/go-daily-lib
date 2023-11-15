@@ -17,6 +17,9 @@ func findMedianSortedArrays(nums1 []int, nums2 []int) float64 {
 func getKthElement(nums1, nums2 []int, k int) int {
 	index1, index2 := 0, 0
 	for {
+		fmt.Printf("for start---> k is:%d\n", k)
+		fmt.Printf("for start---> index1 is: %d\n", index1)
+		fmt.Printf("for start---> index2 is: %d\n", index2)
 		if index1 == len(nums1) {
 			fmt.Printf("----------index1 == len(nums1)-------------\n")
 			fmt.Printf("k is:%d\n", k)
@@ -32,17 +35,22 @@ func getKthElement(nums1, nums2 []int, k int) int {
 			return min(nums1[index1], nums2[index2])
 		}
 		half := k / 2
+		fmt.Printf("half is:%d\n", half)
 		newIndex1 := min(index1+half, len(nums1)) - 1
 		newIndex2 := min(index2+half, len(nums2)) - 1
+		fmt.Printf("newIndex1 is:%d\n", newIndex1)
+		fmt.Printf("newIndex2 is:%d\n", newIndex2)
 		pivot1, pivot2 := nums1[newIndex1], nums2[newIndex2]
 		if pivot1 <= pivot2 {
 			k -= (newIndex1 - index1 + 1)
-			fmt.Printf("----------pivot1 <= pivot2-------------\n")
-			fmt.Printf("k is:%d\n", k)
 			index1 = newIndex1 + 1
+			fmt.Printf("pivot1<= pivot2 ---> k is:%d\n", k)
+			fmt.Printf("pivot1<= pivot2 ---> index1 is: %d\n", index1)
 		} else {
 			k -= (newIndex2 - index2 + 1)
 			index2 = newIndex2 + 1
+			fmt.Printf("pivot1 > pivot2 ---> k is:%d\n", k)
+			fmt.Printf("pivot1 > pivot2 ---> index2 is: %d\n", index2)
 		}
 	}
 	return 0
@@ -60,11 +68,11 @@ func main() {
 	//nums2 := []int{3, 4, 5}
 	//nums1 := []int{1, 2}
 	//nums2 := []int{3, 4}
-	nums1 := []int{1}
-	nums2 := []int{2, 3, 4, 5, 6, 7}
+	//nums1 := []int{1}
+	//nums2 := []int{2, 3, 4, 5, 6, 7}
 	// {1, 1, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 9} 一共13个数
-	//nums1 := []int{1, 3, 4, 9}
-	//nums2 := []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	nums1 := []int{1, 3, 4, 9}
+	nums2 := []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
 	result := findMedianSortedArrays(nums1, nums2)
 	fmt.Printf("输入：nums1 = %v, nums2 = %v  输出：%.1f\n", nums1, nums2, result)
 }
